@@ -28,17 +28,49 @@ if (!fs.existsSync(usersFilePath)) {
 
 
 // Routes to show the different CRUD processes
+app.post('/save', (req, res) => {
+  const { taskNumber, taskDescription, taskDate, taskStatus } = req.body;
+  
+  const filePath = path.join(__dirname, 'data', 'todolist.json');
+  const todoList = JSON.parse(fs.readFileSync(filePath));
 
+  todoList[taskNumber] = {
+    taskDescription: taskDescription,
+    taskDate: taskDate,
+    taskStatus: taskStatus
+  };
+
+  fs.writeFileSync(filePath, JSON.stringify(todoList, null, 2));
+  
+  res.redirect('/');
+})
 
 // Read from the JSON file
 app.get('/', (req, res) => {
- 
-  res.render("index.hbs")
+  const filePath = path.join(__dirname, 'data', 'todolist.json');
+  let todoList = {};
+  
+  if (fs.existsSync(filePath)) {
+    todoList = JSON.parse(fs.readFileSync(filePath))
+  }
+  
+  res.render("index", {todoList});
 });
+
+app.get('/delete', (req, res) => {
+  const {taskNumber} = req.query;
+  
+  const filePath = path.join(__dirname, 'data', 'todolist.json')
+  const todoList = JSON.parse(fs.readFileSync(filePath))
+
+  delete todoList[taskNumber];
+  
+  fs.writeFileSync(filePath, JSON.stringify(todoList, null, 2))
+  
+  res.redirect('/');
+})
 
 
 
 const PORT = 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`App listening to port ${PORT}`));
